@@ -12,7 +12,6 @@ from lib.warframe import Warframe
 bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'))
 bot.add_cog(Text(bot))
 bot.add_cog(Voice(bot))
-bot.add_cog(Warframe(bot))
 
 @bot.event
 async def on_ready():
@@ -21,7 +20,7 @@ async def on_ready():
     print('----------')
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename='/data/discord.log', encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename='./data/discord.log', encoding='utf-8', mode='w')
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 

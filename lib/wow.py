@@ -3,7 +3,7 @@ import aiohttp
 import asyncio
 from discord.ext import commands
 
-with open('./lib/spec_info.json') as data_file:
+with open('./data/spec_info.json') as data_file:
         Config = json.loads(data_file.read())
 
 class Guild:
