@@ -1,16 +1,18 @@
 import asyncio
 
 import discord
+import logging
 import youtube_dl
 
 from discord.ext import commands
+from asyncio import sleep
 
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'outtmpl': './data/Music%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'outtmpl': './data/Music/%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
@@ -62,7 +64,7 @@ class Voice(commands.Cog):
         if ctx.voice_client is not None:
             return await ctx.voice_client.move_to(channel)
 
-        await channel.connect()
+        await ctx.author.voice.channel.connect()
 
     @commands.command(pass_context=True, no_pm=True)
     async def play(self, ctx, *, url):
@@ -70,17 +72,17 @@ class Voice(commands.Cog):
 
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
-            ctx.voice_client.play(player,  after=lambda e: print('Player error: %s' % e) if e else None)
+            ctx.voice_client.play(player,  after= lambda e: logging.log('Player error: %s' % e) if e else None)
 
         await ctx.send('Now playing: {}'.format(player.title))
-    
+
     @commands.command(pass_context=True, no_pm=True)
     async def stream(self, ctx, *, url):
         """Streams from a url"""
 
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            ctx.voice_client.play(player, after= lambda e: logging.log('Player error: %s' % e) if e else None)
 
         await ctx.send('Now playing: {}'.format(player.title))
     
@@ -111,3 +113,11 @@ class Voice(commands.Cog):
                 raise commands.CommandError("Author not connected to a voice channel.")
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
+
+    @play.after_invoke
+    @stream.after_invoke
+    async def auto_disconnect(self, ctx):
+        while ctx.voice_client.is_playing():
+            await sleep(1)
+        await ctx.voice_client.disconnect()
+        await ctx.message.delete()
