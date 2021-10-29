@@ -1,6 +1,6 @@
 import json
 import aiohttp
-import asyncio
+import os
 from discord.ext import commands
 
 with open('./data/spec_info.json') as data_file:
